@@ -39,12 +39,22 @@ jobs:
       with:
         name: app
         path: ./
-    - name: upload artefact to App Center
-      uses: wzieba/AppCenter-Github-Action@v1
-      with:
-        appName: InvestmentOrg/MyInvestment
-        token: ${{secrets.APP_CENTER_TOKEN}}
-        group: Beta Testers
-        file: ${{steps.download.outputs.download-path}}/app-debug.apk
-        notifyTesters: true
-        debug: false
+    # - name: upload artefact to App Center
+    #   uses: wzieba/AppCenter-Github-Action@v1
+    #   with:
+    #     appName: InvestmentOrg/MyInvestment
+    #     token: ${{secrets.APP_CENTER_TOKEN}}
+    #     group: Beta Testers
+    #     file: ${{steps.download.outputs.download-path}}/app-debug.apk
+    #     notifyTesters: true
+    #     debug: false
+    - name: Login to App Center
+      run: npx appcenter-cli login --token ${{secrets.APP_CENTER_TOKEN}}
+    
+    - name: Distribute to App Center
+      run: |
+        npx appcenter-cli distribute release \
+          --app InvestmentOrg/MyInvestment \
+          --file ${{steps.download.outputs.download-path}}/app-debug.apk \
+          --group "Beta Testers" \
+          --notify-testers
