@@ -39,19 +39,12 @@ jobs:
       with:
         name: app
         path: ./
-    - name: Distribute to App Center
-      uses: microsoft/appcenter-distribute@v1
+    - name: upload artefact to App Center
+      uses: wzieba/AppCenter-Github-Action@v1
       with:
-        app: LearnProgrammingAcademy/My-Investments
+        appName: LearnProgrammingAcademy/My-Investments
         token: ${{secrets.APP_CENTER_TOKEN}}
         group: Beta Testers
         file: ${{steps.download.outputs.download-path}}/app-debug.apk
-        notify_testers: true
-    # - name: Distribute to App Center
-    #   uses: wzieba/AppCenter-Github-Action@v1.2.1
-    #   with:
-    #     appName: LearnProgrammingAcademy/My-Investments
-    #     token: ${{secrets.APP_CENTER_TOKEN}}
-    #     group: Beta Testers
-    #     file: ${{steps.download.outputs.download-path}}/app-debug.apk
-    #     notifyTesters: true
+        notifyTesters: true
+        debug: false
