@@ -48,9 +48,14 @@ jobs:
     #     file: ${{steps.download.outputs.download-path}}/app-debug.apk
     #     notifyTesters: true
     #     debug: false
+
     - name: Login to App Center
       run: npx appcenter-cli login --token ${{secrets.APP_CENTER_TOKEN}}
-    
+    - name: Install and login to App Center
+      run: |
+        npm install -g appcenter-cli
+        appcenter login --token "${{ secrets.APP_CENTER_TOKEN }}"
+        
     - name: Distribute to App Center
       run: |
         npx appcenter-cli distribute release \
