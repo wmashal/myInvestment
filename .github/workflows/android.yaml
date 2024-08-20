@@ -44,7 +44,7 @@ jobs:
       with:
         token: ${{ secrets.APPCENTER_ACCESS_TOKEN }}
         build-number: ${{ github.run_number }}
-        path: ${{steps.download.outputs.download-path}}/app-debug.apk
+        path: /home/runner/work/myInvestment/myInvestment/app-debug.apk
         app: LearnProgrammingAcademy/My-Investments
         mandatory: true
         silent: false
