@@ -40,10 +40,18 @@ jobs:
         name: app
         path: ./
     - name: Distribute to App Center
-      uses: wzieba/AppCenter-Github-Action@v1.2.1
+      uses: microsoft/appcenter-distribute@v1
       with:
-        appName: LearnProgrammingAcademy/My-Investments
+        app: LearnProgrammingAcademy/My-Investments
         token: ${{secrets.APP_CENTER_TOKEN}}
         group: Beta Testers
         file: ${{steps.download.outputs.download-path}}/app-debug.apk
-        notifyTesters: true
+        notify_testers: true
+    # - name: Distribute to App Center
+    #   uses: wzieba/AppCenter-Github-Action@v1.2.1
+    #   with:
+    #     appName: LearnProgrammingAcademy/My-Investments
+    #     token: ${{secrets.APP_CENTER_TOKEN}}
+    #     group: Beta Testers
+    #     file: ${{steps.download.outputs.download-path}}/app-debug.apk
+    #     notifyTesters: true
