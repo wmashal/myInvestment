@@ -39,22 +39,12 @@ jobs:
       with:
         name: app
         path: ./
-    - name:  upload artefact to App Center
-      uses: akiojin/appcenter-distribute-github-action@v1
+    - name: upload artefact to App Center
+      uses: wzieba/AppCenter-Github-Action@v1
       with:
-        token: ${{ secrets.APPCENTER_ACCESS_TOKEN }}
-        build-number: ${{ github.run_number }}
-        path: /home/runner/work/myInvestment/myInvestment/app-debug.apk
-        app: LearnProgrammingAcademy/My-Investments
-        mandatory: true
-        silent: false
-        group: 'Beta Testers'
-    # - name: upload artefact to App Center
-    #   uses: wzieba/AppCenter-Github-Action@v1
-    #   with:
-    #     appName: LearnProgrammingAcademy/My-Investments
-    #     token: ${{secrets.APP_CENTER_TOKEN}}
-    #     group: Beta Testers
-    #     file: ${{steps.download.outputs.download-path}}/app-debug.apk
-    #     notifyTesters: true
-    #     debug: false
+        appName: InvestmentOrg/MyInvestment
+        token: ${{secrets.APP_CENTER_TOKEN}}
+        group: Beta Testers
+        file: ${{steps.download.outputs.download-path}}/app-debug.apk
+        notifyTesters: true
+        debug: false
