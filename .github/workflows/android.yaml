@@ -28,84 +28,26 @@ jobs:
         path: app/build/outputs/apk/debug/app-debug.apk
         if-no-files-found: error
 
- GOOGLE_DRIVE_FOLDER_ID secret is set to the correct folder ID (1XRaH-F3BY9cT3mgSpKryKefGZ5LEpeyT).
-To use this workflow:
-
-Go to your GitHub repository settings and check the GOOGLE_DRIVE_CREDENTIALS secret. Make sure it contains the entire JSON content of your service account key, including the opening and closing curly braces.
-Run the workflow again.
-This approach should resolve the issue with reading the credentials file. The workflow will:
-
-Build the APK
-Upload it as a GitHub artifact
-Download the artifact in the distribute job
-Create the Google Cloud credentials file
-Authenticate with Google Cloud
-Upload the APK to the specified Google Drive folder
-If you still encounter issues, please check the output of the "Setup Google Cloud credentials" step, which will print the contents of the credentials file. This will help us determine if the secret is being correctly passed and formatted. Remember to remove or comment out the cat google-credentials.json line before pushing to production to avoid exposing sensitive information.
-
-Copy
-Retry
-
-
-Claude can make mistakes. Please double-check responses.
-
-
-
-No file chosen
-
-
-3.5 Sonnet
-
-Android CI/CD Workflow with Google Drive Upload
-
-name: Android CI/CD
-
-on:
-  push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - name: Set up JDK 1.8
-      uses: actions/setup-java@v1
-      with:
-        java-version: 1.8
-    - name: Grant execute permission for gradlew
-      run: chmod +x gradlew
-    - name: Build with Gradle
-      run: ./gradlew build
-    - name: Upload APK
-      uses: actions/upload-artifact@v2
-      with:
-        name: app-debug-apk
-        path: app/build/outputs/apk/debug/app-debug.apk
-        if-no-files-found: error
-
   distribute:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-    - name: Download APK
-      uses: actions/download-artifact@v2
-      with:
-        name: app-debug-apk
-    - name: Display structure of downloaded files
-      run: ls -R
-    - name: Setup Google Cloud credentials
-      run: |
-        echo '${{ secrets.GOOGLE_DRIVE_CREDENTIALS }}' > google-credentials.json
-        echo "Credentials file created"
-        cat google-credentials.json
-    - name: Activate service account
-      run: |
-        gcloud auth activate-service-account --key-file=google-credentials.json
-    - name: Upload APK to Google Drive
-      run: |
-        FILE_NAME="app-debug-${{ github.sha }}.apk"
-        gcloud drive files upload app-debug.apk --parent ${{ secrets.GOOGLE_DRIVE_FOLDER_ID }} --name "${FILE_NAME}"
-        echo "APK uploaded to Google Drive"
+      needs: build
+      runs-on: ubuntu-latest
+      steps:
+      - name: Download APK
+        uses: actions/download-artifact@v2
+        with:
+          name: app-debug-apk
+      - name: Display structure of downloaded files
+        run: ls -R
+      - name: Setup Google Cloud credentials
+        run: |
+          echo '${{ secrets.GOOGLE_DRIVE_CREDENTIALS }}' > google-credentials.json
+          echo "Credentials file created"
+          cat google-credentials.json
+      - name: Activate service account
+        run: |
+          gcloud auth activate-service-account --key-file=google-credentials.json
+      - name: Upload APK to Google Drive
+        run: |
+          FILE_NAME="app-debug-${{ github.sha }}.apk"
+          gcloud drive files upload app-debug.apk --parent ${{ secrets.GOOGLE_DRIVE_FOLDER_ID }} --name "${FILE_NAME}"
+          echo "APK uploaded to Google Drive"
