@@ -28,39 +28,24 @@ jobs:
         path: app/build/outputs/apk/debug/app-debug.apk
         if-no-files-found: error
 
-  distribute:
+  test:
     needs: build
     runs-on: ubuntu-latest
     steps:
     - name: Download APK
       uses: actions/download-artifact@v2
       with:
-        name: app-debug-apk
+        name: app-debug
+
     - name: Display structure of downloaded files
       run: ls -R
-    - name: Verify and setup Google Cloud credentials
+      
+    - name: Check APK file
       run: |
-        if [ -z "${{ secrets.GOOGLE_DRIVE_CREDENTIALS }}" ]; then
-          echo "Error: GOOGLE_DRIVE_CREDENTIALS is empty"
-          exit 1
-        fi
-        echo '${{ secrets.GOOGLE_DRIVE_CREDENTIALS }}' > google-credentials.json
-        echo "Credentials file created"
-        if jq empty google-credentials.json 2>/dev/null; then
-          echo "JSON is valid"
-          echo "First few fields of the JSON:"
-          jq '{type, project_id, private_key_id}' google-credentials.json
+        if [ -f "app-debug.apk" ]; then
+          echo "APK file exists"
+          echo "File size: $(du -h app-debug.apk | cut -f1)"
         else
-          echo "JSON is invalid"
-          echo "Content of the file (first 100 characters):"
-          head -c 100 google-credentials.json
+          echo "APK file not found"
           exit 1
         fi
-    - name: Activate service account
-      run: |
-        gcloud auth activate-service-account --key-file=google-credentials.json
-    - name: Upload APK to Google Drive
-      run: |
-        FILE_NAME="app-debug-${{ github.sha }}.apk"
-        gcloud drive files upload app-debug.apk --parent ${{ secrets.GOOGLE_DRIVE_FOLDER_ID }} --name "${FILE_NAME}"
-        echo "APK uploaded to Google Drive"
