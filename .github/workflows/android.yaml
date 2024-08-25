@@ -29,25 +29,34 @@ jobs:
         if-no-files-found: error
 
   distribute:
-      needs: build
-      runs-on: ubuntu-latest
-      steps:
-      - name: Download APK
-        uses: actions/download-artifact@v2
-        with:
-          name: app-debug-apk
-      - name: Display structure of downloaded files
-        run: ls -R
-      - name: Setup Google Cloud credentials
-        run: |
-          echo '${{ secrets.GOOGLE_DRIVE_CREDENTIALS }}' > google-credentials.json
-          echo "Credentials file created"
-          cat google-credentials.json
-      - name: Activate service account
-        run: |
-          gcloud auth activate-service-account --key-file=google-credentials.json
-      - name: Upload APK to Google Drive
-        run: |
-          FILE_NAME="app-debug-${{ github.sha }}.apk"
-          gcloud drive files upload app-debug.apk --parent ${{ secrets.GOOGLE_DRIVE_FOLDER_ID }} --name "${FILE_NAME}"
-          echo "APK uploaded to Google Drive"
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - name: Download APK
+      uses: actions/download-artifact@v2
+      with:
+        name: app-debug-apk
+    - name: Display structure of downloaded files
+      run: ls -R
+    - name: Setup and validate Google Cloud credentials
+      run: |
+        echo '${{ secrets.GOOGLE_DRIVE_CREDENTIALS }}' > google-credentials.json
+        echo "Credentials file created"
+        if jq empty google-credentials.json 2>/dev/null; then
+          echo "JSON is valid"
+          echo "First few fields of the JSON:"
+          jq '{type, project_id, private_key_id}' google-credentials.json
+        else
+          echo "JSON is invalid"
+          echo "Content of the file (first 100 characters):"
+          head -c 100 google-credentials.json
+          exit 1
+        fi
+    - name: Activate service account
+      run: |
+        gcloud auth activate-service-account --key-file=google-credentials.json
+    - name: Upload APK to Google Drive
+      run: |
+        FILE_NAME="app-debug-${{ github.sha }}.apk"
+        gcloud drive files upload app-debug.apk --parent ${{ secrets.GOOGLE_DRIVE_FOLDER_ID }} --name "${FILE_NAME}"
+        echo "APK uploaded to Google Drive"
