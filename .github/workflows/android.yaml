@@ -29,20 +29,31 @@ jobs:
         if-no-files-found: error
 
   distribute:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-    - name: Download APK
-      uses: actions/download-artifact@v2
-      with:
-        name: app-debug-apk
-    - name: Display structure of downloaded files
-      run: ls -R
-    - name: Upload APK to Shared Google Drive Folder
-      uses: adityak74/google-drive-upload-git-action@main
-      with:
-        credentials: ${{ secrets.GOOGLE_DRIVE_CREDENTIALS }}
-        filename: app-debug.apk
-        folderId: 1XRaH-F3BY9cT3mgSpKryKefGZ5LEpeyT
-        overwrite: "true"
-        name: app-debug-${{ github.sha }}.apk
+      needs: build
+      runs-on: ubuntu-latest
+      steps:
+      - name: Download APK
+        uses: actions/download-artifact@v2
+        with:
+          name: app-debug-apk
+      - name: Display structure of downloaded files
+        run: ls -R
+      - name: Decode Google Cloud credentials
+        run: echo "${{ secrets.GOOGLE_DRIVE_CREDENTIALS }}" | base64 -d > google-credentials.json
+      - name: Setup gcloud CLI
+        uses: google-github-actions/setup-gcloud@v0.2.0
+        with:
+          service_account_key: ${{ secrets.GOOGLE_DRIVE_CREDENTIALS }}
+          project_id: ${{ secrets.GOOGLE_CLOUD_PROJECT_ID }}
+      - name: Upload APK to Google Drive
+        run: |
+          gcloud auth activate-service-account --key-file=google-credentials.json
+          gcloud config set project ${{ secrets.GOOGLE_CLOUD_PROJECT_ID }}
+          FILE_NAME="app-debug-${{ github.sha }}.apk"
+          gcloud alpha storage cp app-debug.apk gs://your-bucket-name/${FILE_NAME}
+          echo "APK uploaded to Google Cloud Storage"
+      - name: Create public URL
+        run: |
+          FILE_NAME="app-debug-${{ github.sha }}.apk"
+          gsutil acl ch -u AllUsers:R gs://your-bucket-name/${FILE_NAME}
+          echo "Public URL: https://storage.googleapis.com/your-bucket-name/${FILE_NAME}"
