@@ -28,23 +28,18 @@ jobs:
         path: app/build/outputs/apk/debug/app-debug.apk
         
   distribute:
-    
-    needs: [ build ]
+    needs: build
     runs-on: ubuntu-latest
-
     steps:
     - name: Download APK
-      uses: actions/download-artifact@v2.0.5
-      id: download
+      uses: actions/download-artifact@v2
       with:
-        name: app
-        path: ./
-    - name: upload artefact to App Center
-      uses: wzieba/AppCenter-Github-Action@v1
+        name: app-debug
+    - name: Upload APK to Shared Google Drive Folder
+      uses: adityak74/google-drive-upload-git-action@main
       with:
-        appName: InvestmentOrg/MyInvestment
-        token: ${{secrets.APP_CENTER_TOKEN}}
-        group: Beta Testers
-        file: ${{steps.download.outputs.download-path}}/app-debug.apk
-        notifyTesters: true
-        debug: false
+        credentials: ${{ secrets.GOOGLE_DRIVE_CREDENTIALS }}
+        filename: app-debug.apk
+        folderId: 1XRaH-F3BY9cT3mgSpKryKefGZ5LEpeyT
+        overwrite: "true"
+        name: app-debug-${{ github.sha }}.apk
